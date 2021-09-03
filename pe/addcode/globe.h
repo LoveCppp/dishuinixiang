@@ -36,8 +36,10 @@ DWORD Add_SectionInNewSecExt(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer)
 
 BOOL NewFileBufferToFile(IN LPVOID pNewFileBuffer, size_t size,OUT LPSTR lpszFile);
 
+DWORD Merge_Sec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer);
 
-
+DWORD Alignment(DWORD alignment_value, DWORD addend, DWORD address);
+int MergeLastSection( LPVOID pImageBuffer );
 class globe  
 {
 public:

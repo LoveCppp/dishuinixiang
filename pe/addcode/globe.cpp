@@ -194,12 +194,13 @@ DWORD CopyImageBufferToNewFileBuffer(IN LPVOID pImageBuffer, OUT LPVOID *pNewFil
 	for (int i=0;i<pPEHeader->NumberOfSections;i++,pSectionHeader++)
 	{
 		//从pImageBuffer的PointerToRawData 也就是文件的节开始的位置，然后从内存中节的开始的地址写入SizeOfRawData（文件对其后的大小个字节）
+		//printf("%d\n",pSectionHeader->SizeOfRawData);
+
 		memcpy((PVOID)((DWORD)pImageBuffer + pSectionHeader->PointerToRawData), (PVOID)((DWORD)pImageBuffer + pSectionHeader->VirtualAddress), pSectionHeader->SizeOfRawData);		
 	};
 
 	
 	*pNewFileBuffer = pImageBuffer;
-	
 
 	return pOptionHeader->SizeOfImage;
 }
@@ -236,6 +237,7 @@ BOOL NewFileBufferToFile(IN LPVOID pNewFileBuffer, size_t size,OUT LPSTR lpszFil
 		printf("fopen保存EXE文件失败...\n");
 		return ERROR;
 	}
+
 	size_t n = fwrite(pNewFileBuffer, fileSize, 1, pFile);
 	
 	if(!n){
@@ -248,6 +250,7 @@ BOOL NewFileBufferToFile(IN LPVOID pNewFileBuffer, size_t size,OUT LPSTR lpszFil
 	
 	return TRUE;
 };
+
 
 
 
@@ -419,7 +422,7 @@ DWORD Add_SectionInNewSecExt(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer)
 
 
 
-
+//新增节
 
 
 DWORD Add_SectionInNewSec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){
@@ -591,3 +594,108 @@ DWORD Add_SectionInNewSec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){
 }
 
 
+
+
+//合并节
+
+DWORD Merge_Sec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){\
+
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	LPVOID pTempImageBuffer = NULL;
+	if(!pImageBuffer)
+	{
+		printf("读取到内存的pImageBuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pImageBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pImageBuffer;
+	if(*((PDWORD)((BYTE *)pImageBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pImageBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pImageBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
+	
+	//第一种算法
+	DWORD Max =(char*)pOptionHeader->SizeOfImage - (char*)pSectionHeader->VirtualAddress;
+
+	//第二种算法
+	//最后一个节的地址 VirtualSize 或者 VirtualAddress + SizeOfRawData - 头的大小
+	//获取最后一个节
+	//PIMAGE_SECTION_HEADER EndSection = pSectionHeader+(pPEHeader->NumberOfSections-1);
+	//DWORD Max1 = EndSection->VirtualAddress +Alignment(pOptionHeader->SectionAlignment,max(EndSection->Misc.VirtualSize, EndSection->SizeOfRawData),0)   - Alignment(pOptionHeader->SectionAlignment, pOptionHeader->SizeOfHeaders, 0);
+	//VirtualSize = SizeOfRawData  = Max	
+	//1.修改节表的数量
+	pPEHeader->NumberOfSections = 1;
+
+
+     //pSectionHeader->Characteristics |= IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_WRITE ;
+	pSectionHeader->Characteristics |= ( (PIMAGE_SECTION_HEADER)( (DWORD)pSectionHeader + IMAGE_SIZEOF_SECTION_HEADER ) )->Characteristics ;
+	
+	//pSectionHeader->Characteristics = 0xE0000060;
+
+	
+	//VS SR   VirtualAddress PD不用改
+
+	pSectionHeader->Misc.VirtualSize = Max;
+
+	pSectionHeader->SizeOfRawData = Max;
+
+	//先复制到内存
+	pTempImageBuffer  =malloc(pOptionHeader->SizeOfImage);
+	if (!pTempImageBuffer)
+	{
+		printf("pTempFileBuffer空间申请失败...");
+		return 0;
+	}
+	//然后空间设置为0
+	memset(pTempImageBuffer, 0, pOptionHeader->SizeOfImage);
+	//复制整个文件
+	memcpy(pTempImageBuffer,pImageBuffer,pOptionHeader->SizeOfImage);
+
+
+	*pNewImageBuffer = pTempImageBuffer;	
+	return 1;
+
+}
+	
+
+DWORD Alignment(DWORD alignment_value, DWORD addend, DWORD address)
+{
+	int n = 0;
+	if (addend / alignment_value)
+	{
+		if (addend%alignment_value)
+		{
+			n = addend / alignment_value + 1;
+		}
+		else
+		{
+			n = addend / alignment_value;
+		}
+	}
+	else
+	{
+		if (addend)
+			n = 1;
+		else
+			n = 0;
+	}
+	address += n * alignment_value;
+	return address;
+}
