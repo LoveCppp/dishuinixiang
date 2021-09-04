@@ -31,18 +31,26 @@ void main(int argc, char* argv[])
 	//复制到内存
 	int ImageSize=	CopyFileBufferToImageBuffer(peFileBuffer,&pImageBuffer);
 	//新增节 、可以在CopyFileBufferToImageBuffer 函数中直接新增，为了好识别所以新加一个函数来实现该功能
+	
+	
 
-	Merge_Sec(pImageBuffer,&pNewImageBuff);
-
+	//合并节
+	//Merge_Sec(pImageBuffer,&pNewImageBuff);
+	
+	//新增节
 	//Add_SectionInNewSec(pImageBuffer, &pNewImageBuff);
 	//扩大一个节
 	//Add_SectionInNewSecExt(pImageBuffer, &pNewImageBuff);
 	//新增shell code
 	//Add_SectionCode(pNewImageBuff);
-	int newFileSize= CopyImageBufferToNewFileBuffer(pNewImageBuff,&pNewFileBuffer);
+	//int newFileSize= CopyImageBufferToNewFileBuffer(pNewImageBuff,&pNewFileBuffer);
+
+
+	//数据目录
+	PrintDriectory(pImageBuffer);
 
 	//生成新的文件
-	NewFileBufferToFile(pNewFileBuffer, newFileSize, FilePath_Out); 
+	//NewFileBufferToFile(pNewFileBuffer, newFileSize, FilePath_Out); 
 
 	
 

@@ -427,7 +427,7 @@ DWORD Add_SectionInNewSecExt(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer)
 
 DWORD Add_SectionInNewSec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){
 	
-
+	
 	PIMAGE_DOS_HEADER pDosHeader = NULL;
 	PIMAGE_NT_HEADERS pNTHeader = NULL;
 	PIMAGE_FILE_HEADER pPEHeader = NULL;
@@ -644,8 +644,8 @@ DWORD Merge_Sec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){\
 	pPEHeader->NumberOfSections = 1;
 
 
-     //pSectionHeader->Characteristics |= IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_WRITE ;
-	pSectionHeader->Characteristics |= ( (PIMAGE_SECTION_HEADER)( (DWORD)pSectionHeader + IMAGE_SIZEOF_SECTION_HEADER ) )->Characteristics ;
+     pSectionHeader->Characteristics |= IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_WRITE|IMAGE_SCN_MEM_READ;
+	//pSectionHeader->Characteristics |= ( (PIMAGE_SECTION_HEADER)( (DWORD)pSectionHeader + IMAGE_SIZEOF_SECTION_HEADER ) )->Characteristics ;
 	
 	//pSectionHeader->Characteristics = 0xE0000060;
 
@@ -699,3 +699,118 @@ DWORD Alignment(DWORD alignment_value, DWORD addend, DWORD address)
 	address += n * alignment_value;
 	return address;
 }
+
+
+DWORD PrintDriectory(LPVOID pImageBuffer){
+	
+	//定义PE头的信息
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	
+	if(!pImageBuffer)
+	{
+		printf("读取到内存的pfilebuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pImageBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pImageBuffer;
+	if(*((PDWORD)((BYTE *)pImageBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pImageBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pImageBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	
+
+	printf("===导出表====\n");
+	
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[0].VirtualAddress);
+	
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[0].Size);
+
+	printf("===导入表====\n");
+
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[1].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[1].Size);
+	
+
+	printf("===资源表====\n");
+	
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[2].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[2].Size);
+	
+	
+	printf("===异常信息表====\n");
+	
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[3].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[3].Size);
+	
+	printf("===安全证书表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[4].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[4].Size);
+	
+	
+	printf("===重定位表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[5].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[5].Size);	
+
+	printf("===调试信息表证书表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[6].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[6].Size);
+	
+
+	printf("===版权所有表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[7].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[7].Size);
+
+	printf("===全局指针表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[8].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[8].Size);
+
+	printf("===TLS表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[9].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[9].Size);
+
+	printf("===加载配置表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[10].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[10].Size);
+
+	printf("===绑定导入表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[11].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[11].Size);
+
+	printf("====IAT表===\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[12].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[12].Size);
+
+	printf("====延迟导入===\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[13].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[13].Size);
+
+	
+	printf("====COM===\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[14].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[14].Size);
+	
+
+	
+	printf("====保留===\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[15].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[15].Size);
+
+	return 1;
+}
+

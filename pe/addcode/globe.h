@@ -40,6 +40,7 @@ DWORD Merge_Sec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer);
 
 DWORD Alignment(DWORD alignment_value, DWORD addend, DWORD address);
 int MergeLastSection( LPVOID pImageBuffer );
+DWORD PrintDriectory(LPVOID pImageBuffer);
 class globe  
 {
 public:
