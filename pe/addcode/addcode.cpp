@@ -20,7 +20,7 @@ void main(int argc, char* argv[])
 	LPVOID pImageBuffer = NULL;
 	LPVOID pNewImageBuff = NULL;
 	LPVOID pNewFileBuffer = NULL;
-	char path[] = "c://project/notepad.exe";	
+	char path[] = "c://project/testDefDll.dll";	
 	
 	char outpath[] = "c://project/notepad3.exe";
 	LPSTR FILEPATH = path;
@@ -29,11 +29,9 @@ void main(int argc, char* argv[])
 	//读取file文件
 	ReadPeFile(FILEPATH,&peFileBuffer);
 	//复制到内存
-	int ImageSize=	CopyFileBufferToImageBuffer(peFileBuffer,&pImageBuffer);
+	//int ImageSize=	CopyFileBufferToImageBuffer(peFileBuffer,&pImageBuffer);
 	//新增节 、可以在CopyFileBufferToImageBuffer 函数中直接新增，为了好识别所以新加一个函数来实现该功能
 	
-	
-
 	//合并节
 	//Merge_Sec(pImageBuffer,&pNewImageBuff);
 	
@@ -47,8 +45,11 @@ void main(int argc, char* argv[])
 
 
 	//数据目录
-	PrintDriectory(pImageBuffer);
+	//PrintDriectory(pImageBuffer);
 
+	//打印导出表
+
+	PrintExport(peFileBuffer);
 	//生成新的文件
 	//NewFileBufferToFile(pNewFileBuffer, newFileSize, FilePath_Out); 
 
