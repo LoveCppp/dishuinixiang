@@ -854,20 +854,22 @@ DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwRva){
 
 	
 	pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
+	
 
+	PIMAGE_SECTION_HEADER pSectionTemp = pSectionHeader;
 
 	if (dwRva <= pOptionHeader->SizeOfHeaders)
 		return (DWORD)dwRva;
 	else
 	{
-		for (int n = 0; n < pPEHeader->NumberOfSections; n++, pSectionHeader++)
+		for (int n = 0; n < pPEHeader->NumberOfSections; n++, pSectionTemp++)
 		{	
 			//判断 :   文件对齐+文件偏移>file_panyi>文件偏移  (即是在文件的哪个节中)
 			//  首先要判断在那个节中，并且小于当前节的大小
-			if ((dwRva >= pSectionHeader->VirtualAddress) && (dwRva < pSectionHeader->VirtualAddress + max(pSectionHeader->Misc.VirtualSize,pSectionHeader->PointerToRawData)))
+			if ((dwRva >= pSectionTemp->VirtualAddress) && (dwRva < pSectionTemp->VirtualAddress + pSectionTemp->Misc.VirtualSize))
 			{
 				//文件偏移 =  当前内存偏移-当前内存地址+ 当前内存中的文件偏移
-				return dwRva - pSectionHeader->VirtualAddress + pSectionHeader->PointerToRawData;
+				return dwRva - pSectionTemp->VirtualAddress + pSectionTemp->PointerToRawData;
 			}
 		}
 	}
@@ -975,13 +977,15 @@ DWORD PrintExport(LPVOID pFileBuffer){
 	
 	//cout << hex << "-exportName                  = " << Export_Directory->Name                   << endl;
 	printf("Name:%s指向该导出表的文件名\n",(char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->Name));
-	printf("Base:%d导出表的起始序号\n",Export_Directory->Base);
-	printf("NumberOfFunctions:%d 导出函数的函数个数\n",Export_Directory->NumberOfFunctions);
-	printf("NumberOfNames:%d 以函数名字导出的函数个数\n",Export_Directory->NumberOfNames);
+	printf("Base:%x导出表的起始序号\n",Export_Directory->Base);
+	printf("NumberOfFunctions:%x 导出函数的函数个数\n",Export_Directory->NumberOfFunctions);
+	printf("NumberOfNames:%x 以函数名字导出的函数个数\n",Export_Directory->NumberOfNames);
 	printf("AddressOfFunctions: %x导出函数地址表RVA\n", Export_Directory-> AddressOfFunctions);
 	printf("AddressOfNames;: %x导出函数名称表RVA\n", Export_Directory-> AddressOfNames);
 	printf("AddressOfNameOrdinals;: %x导出函数序号表RVA\n\n", Export_Directory-> AddressOfNameOrdinals);
 
+
+	
 	printf("===函数地址表====\n");
 	
 	DWORD* AddressOfFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfFunctions));
@@ -993,22 +997,33 @@ DWORD PrintExport(LPVOID pFileBuffer){
 		printf("函数地址%x\n",*AddressOfFunctionsAddress);
 	}
 	
+	printf("\n");
+	printf("===函数名称表====\n");
+	DWORD* AddressOfNamesFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNames));
 
 
-	printf("===函数名称地址表====\n");
+	for(int x =0;x<Export_Directory->NumberOfNames;x++,AddressOfNamesFunctionsAddress++)
+	{
+		printf("函数地址%x\n",*AddressOfNamesFunctionsAddress);
+		printf("函数名称%s\n",(char*)pFileBuffer+RvaToFileOffset(pFileBuffer,*AddressOfNamesFunctionsAddress));
+	}
+
+	printf("\n");
+	printf("===函数序号表====\n");
 	
 	//获取函数名称地址
-	DWORD* AddressOfNamesAddress =(DWORD*)((DWORD)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNames)+32);
 
-
-	for(int j =0;j<Export_Directory->NumberOfNames;j++,AddressOfNamesAddress++)
-	{
-
-		printf("====%x\n",AddressOfNamesAddress);
-		printf("函数名称%x\n",*AddressOfNamesAddress);
-	}
+	WORD* AddressOfNameOrdinalsAddress =(WORD*)((DWORD)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNameOrdinals));
 	
 
+	for(int j =0;j<Export_Directory->NumberOfNames;j++,AddressOfNameOrdinalsAddress++)
+	{
+
+		printf("序号表%x\n",*AddressOfNameOrdinalsAddress + Export_Directory->Base);
+
+	}
+	
 	
 	return 1;
 }
+
