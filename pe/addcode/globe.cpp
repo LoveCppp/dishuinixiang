@@ -856,20 +856,20 @@ DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwRva){
 	pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
 	
 
-	PIMAGE_SECTION_HEADER pSectionTemp = pSectionHeader;
+	//PIMAGE_SECTION_HEADER pSectionTemp = pSectionHeader;
 
 	if (dwRva <= pOptionHeader->SizeOfHeaders)
 		return (DWORD)dwRva;
 	else
 	{
-		for (int n = 0; n < pPEHeader->NumberOfSections; n++, pSectionTemp++)
+		for (int n = 0; n < pPEHeader->NumberOfSections; n++, pSectionHeader++)
 		{	
 			//判断 :   文件对齐+文件偏移>file_panyi>文件偏移  (即是在文件的哪个节中)
 			//  首先要判断在那个节中，并且小于当前节的大小
-			if ((dwRva >= pSectionTemp->VirtualAddress) && (dwRva < pSectionTemp->VirtualAddress + pSectionTemp->Misc.VirtualSize))
+			if ((dwRva >= pSectionHeader->VirtualAddress) && (dwRva < pSectionHeader->VirtualAddress + pSectionHeader->Misc.VirtualSize))
 			{
 				//文件偏移 =  当前内存偏移-当前内存地址+ 当前内存中的文件偏移
-				return dwRva - pSectionTemp->VirtualAddress + pSectionTemp->PointerToRawData;
+				return dwRva - pSectionHeader->VirtualAddress + pSectionHeader->PointerToRawData;
 			}
 		}
 	}
@@ -1025,5 +1025,111 @@ DWORD PrintExport(LPVOID pFileBuffer){
 	
 	
 	return 1;
+}
+
+
+DWORD GetFunctionAddrByName(PVOID pFileBuffer,char* FuncName){
+	//定义PE头的信息
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	
+	if(!pFileBuffer)
+	{
+		printf("读取到内存的pfilebuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
+	if(*((PDWORD)((BYTE *)pFileBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pFileBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pFileBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	//
+	PIMAGE_EXPORT_DIRECTORY Export_Directory = (PIMAGE_EXPORT_DIRECTORY)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,pOptionHeader->DataDirectory[0].VirtualAddress));
+	
+
+	DWORD* AddressOfNamesFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNames));
+	
+
+	WORD* AddressOfNameOrdinalsAddress =(WORD*)((DWORD)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNameOrdinals));
+	
+	DWORD* AddressOfFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfFunctions));
+	
+	for(int x =0;x<Export_Directory->NumberOfNames;x++,AddressOfNamesFunctionsAddress++)
+	{
+	
+		//printf("函数名称%s\n",(char*)pFileBuffer+RvaToFileOffset(pFileBuffer,*AddressOfNamesFunctionsAddress));
+		if (*FuncName == *((char*)pFileBuffer+RvaToFileOffset(pFileBuffer,*AddressOfNamesFunctionsAddress)))
+		{
+			printf("函数地址为:%x\n",AddressOfFunctionsAddress[AddressOfNameOrdinalsAddress[x]]);
+		}
+	
+	}
+
+
+
+}
+
+
+
+DWORD GetFunctionAddrByOrdinals(LPVOID pFileBuffer,DWORD FunctionOrdinals){
+
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	
+	if(!pFileBuffer)
+	{
+		printf("读取到内存的pfilebuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
+	if(*((PDWORD)((BYTE *)pFileBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pFileBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pFileBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	//
+	PIMAGE_EXPORT_DIRECTORY Export_Directory = (PIMAGE_EXPORT_DIRECTORY)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,pOptionHeader->DataDirectory[0].VirtualAddress));
+	
+	
+	DWORD* AddressOfNamesFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNames));
+
+	
+
+	printf("函数地址为：%x\n",AddressOfNamesFunctionsAddress[FunctionOrdinals-Export_Directory->Base]);
+
+	
+
+	
 }
 

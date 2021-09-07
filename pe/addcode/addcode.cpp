@@ -52,12 +52,14 @@ void main(int argc, char* argv[])
 	PrintExport(peFileBuffer);
 	//生成新的文件
 	//NewFileBufferToFile(pNewFileBuffer, newFileSize, FilePath_Out); 
+	char* FuncName = "Div";
+
+	GetFunctionAddrByName(peFileBuffer, FuncName);
 	
-
-
+	DWORD FunctionOrdinals = 0xC;
+	GetFunctionAddrByOrdinals(peFileBuffer,FunctionOrdinals);
 
 	getchar();
-
 
 
 

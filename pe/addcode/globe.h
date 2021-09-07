@@ -45,7 +45,8 @@ DWORD PrintExport(LPVOID pFileBuffer);
 
 DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwFoa);
 DWORD FoaToImageOffset(PVOID pBuffer, DWORD dwFoa);
-
+DWORD GetFunctionAddrByName(PVOID pFileBuffer,char* FuncName);
+DWORD GetFunctionAddrByOrdinals(LPVOID pFileBuffer,DWORD FunctionOrdinals);
 class globe  
 {
 public:
