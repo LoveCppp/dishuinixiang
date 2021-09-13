@@ -420,6 +420,10 @@ DWORD Add_SectionInNewSecExt(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer)
 	
 
 	*pNewImageBuffer = pTempImageBuffer;
+
+
+	free(pTempImageBuffer);
+	free(pImageBuffer);
 	return 1;
 }
 
@@ -471,14 +475,18 @@ DWORD Add_SectionInNewSec(IN LPVOID pImageBuffer,OUT LPVOID* pNewImageBuffer){
 	//标准PE大小  sizeof(*pPEHeader) 
 	//可选PE头 sizeof(*pOptionHeader) 
 	//已存在的节表大小  节的总数 * 节表的大小 pPEHeader->NumberOfSections *　sizeof
-	
+
 	DWORD whiteSpaceSize =pOptionHeader->SizeOfHeaders - (pDosHeader->e_lfanew + sizeof(pNTHeader->Signature) + sizeof(*pPEHeader) + sizeof(*pOptionHeader) + ( pPEHeader->NumberOfSections * sizeof(IMAGE_SECTION_HEADER)));
 	//判断是否还有2个字节的大小
 	
+	printf("%d\n",whiteSpaceSize);
+
 	if (whiteSpaceSize < (2 * sizeof(IMAGE_SECTION_HEADER)))
 	{
 		printf("---空间不足无法新增节表----");
 		return false;
+		//如果空间不足，则判断是否可以将PE往上拉伸
+
 		
 	}
 	
@@ -1133,3 +1141,85 @@ DWORD GetFunctionAddrByOrdinals(LPVOID pFileBuffer,DWORD FunctionOrdinals){
 	
 }
 
+DWORD PrintRelocation(LPVOID pFileBuffer){
+	
+	//定义PE头的信息
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	
+	if(!pFileBuffer)
+	{
+		printf("读取到内存的pfilebuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
+	if(*((PDWORD)((BYTE *)pFileBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pFileBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pFileBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	//重定位表开始
+	printf("===重定位表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[5].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[5].Size);
+
+	
+	if(pOptionHeader->DataDirectory[5].VirtualAddress == 0){
+		printf("%s","不存在重定位表...");
+		return 0;
+	}
+ 
+
+	printf("===第一个重定位表结构====\n");
+	PIMAGE_BASE_RELOCATION ReloCation = (_IMAGE_BASE_RELOCATION*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,pOptionHeader->DataDirectory[5].VirtualAddress));
+
+	
+   int cnt = 0;
+    while (true) {
+          
+		//先判断重定位表是否结束 0代表已经结束
+		if (ReloCation->VirtualAddress != 0 && ReloCation->SizeOfBlock !=0)
+		{
+			printf("**********************************\n");
+			printf("%x\n",ReloCation);
+			//获取一共有多少块数据 数量 = 重定位表大小 -  8 (VirtualAddress大小 + SizeOfBlock 一共占了8字节) / 2 (因为每个块站2个字节的大小)
+			int num = (ReloCation->SizeOfBlock - 8) / 2;
+			for (int i =0;i<num-1;i++)  //循环表
+			{
+				
+				//获取表的地址
+			     WORD* offset = (WORD*)((char*)ReloCation+8+2*i);
+				//判断高位是否 =3 高位是否大于= 0011
+				if (*offset >= 0x3000)
+				{
+					   //*offset-0x3000 *offset 是2个字节 占了16位 我们只需要12位 所以减去高位0011 就变成了12位
+					   printf("第%x项\t地址:%X\t偏移:%X\n", ReloCation->VirtualAddress, *offset-0x3000);
+				}
+			}
+			ReloCation = (_IMAGE_BASE_RELOCATION*)((char*)ReloCation + ReloCation->SizeOfBlock);
+			  cnt++;
+		}else{
+			break;
+		}
+
+
+
+    }
+    printf("%d\n", cnt);
+
+}

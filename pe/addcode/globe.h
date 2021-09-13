@@ -42,11 +42,15 @@ DWORD Alignment(DWORD alignment_value, DWORD addend, DWORD address);
 int MergeLastSection( LPVOID pImageBuffer );
 DWORD PrintDriectory(LPVOID pImageBuffer);
 DWORD PrintExport(LPVOID pFileBuffer);
+DWORD PrintRelocation(LPVOID pFileBuffer);
+
+
 
 DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwFoa);
 DWORD FoaToImageOffset(PVOID pBuffer, DWORD dwFoa);
 DWORD GetFunctionAddrByName(PVOID pFileBuffer,char* FuncName);
 DWORD GetFunctionAddrByOrdinals(LPVOID pFileBuffer,DWORD FunctionOrdinals);
+
 class globe  
 {
 public:
