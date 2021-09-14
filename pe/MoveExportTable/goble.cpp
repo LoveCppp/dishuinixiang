@@ -113,7 +113,6 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 
 
 
-
 	pOptionHeader->SizeOfImage +=  0x1000;
 
 	//修改节表NumberOfSection数量
@@ -154,10 +153,8 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 			pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
 			pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
 
-			
 		}	
 	}
-	
 	
 
 	PIMAGE_SECTION_HEADER pNewSec = (PIMAGE_SECTION_HEADER)(pSectionHeader + pPEHeader->NumberOfSections);
@@ -180,13 +177,12 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 	//在新增节表后增加40个字节的空白区
     memset(pNewSec+1, 0, 40);
 	
-	
-	
 	LPVOID NewBuffer = malloc(pOptionHeader->SizeOfImage);//申请内存
 	memset(NewBuffer, 0, pOptionHeader->SizeOfImage);//初始化内存
-    memcpy(NewBuffer, pTempBuffer,pOptionHeader->SizeOfImage);//复制内存
+    memcpy(NewBuffer, pFilebuff,pOptionHeader->SizeOfImage);//复制内存 
 	
-
+	
+	
 
 
 	//定位导出表
@@ -194,8 +190,10 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 	//2.复制函数表：AddressOfFunction(size:NumberOfFunctions * 4) 到新增的节；
 	
 	DWORD* AddressOfFunctionsAddress = (DWORD*)((char*)NewBuffer + RvaToFileOffset(NewBuffer,Export_Directory->AddressOfFunctions));
+
 	//定位新节表的地址
 	LPVOID pNewSecAddr = (LPVOID)((DWORD)NewBuffer+pNewSec->PointerToRawData);
+	
 
 	memcpy(pNewSecAddr,AddressOfFunctionsAddress,Export_Directory->NumberOfFunctions * 4);
 
@@ -228,8 +226,9 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 		//获取名字地址
 		char* FuncName = (char*)((char*)NewBuffer + NameOffset);
 			
-		//复制函数名称偏移到新的函数名称表
-		*NameAddr = (DWORD)(RvaToFileOffset(NewBuffer,NameOffset));
+		//复制函数名称偏移到新的函数名称表 
+		*NameAddr = (DWORD)(FoaToImageOffset(NewBuffer,NameOffset));   //AddressOfName中的地址是内存地址，所以需要把文件地址转换为内存地
+		
 		//函数地址+4
 		NameAddr = (PDWORD)((DWORD)NameAddr + 4);
 
@@ -247,8 +246,27 @@ DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff){
 	//复制导出表到节
     memcpy(pNewSecAddr,Export_Directory,pOptionHeader->DataDirectory[0].Size);
 	
+	//新的导出表的地址
+	PIMAGE_EXPORT_DIRECTORY  NewExport_Directory = (PIMAGE_EXPORT_DIRECTORY)((char*)pNewSecAddr);
+
+	//修改新的导出表的AddressOfFunctions、AddressOfNameOrdinals、AddressOfNames地址，这几个地址都是内存地址 里面存放的值才是文件偏移   需要FOA->RVA  
+    NewExport_Directory->AddressOfFunctions = FoaToImageOffset(NewBuffer,pNewSec->PointerToRawData);			//AddressOfFunctions 内存地址 非文件偏移 需要转换成内存地址
+	NewExport_Directory->AddressOfNameOrdinals = FoaToImageOffset(NewBuffer,pNewSec->PointerToRawData + NewExport_Directory->NumberOfFunctions * 4);  //AddressOfNameOrdinals 内存地址 非文件偏移 需要转换成内存地址非文件偏移
+    NewExport_Directory->AddressOfNames = FoaToImageOffset(NewBuffer,pNewSec->PointerToRawData + NewExport_Directory->NumberOfFunctions * 4 + NewExport_Directory->NumberOfNames * 2);  //AddressOfNames 非文件偏移 需要转换成内存地址非文件偏移
 	
-	FILE* fp = fopen("C://project/testCD.dll","wb+");
+
+	pDosHeader =(PIMAGE_DOS_HEADER)NewBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)NewBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
+	
+	//新导出表的地址 新导出表的地址= NewExport_Directory 内存地址 - 文件开始的位置 = 偏移
+	pOptionHeader->DataDirectory[0].VirtualAddress = FoaToImageOffset(NewBuffer,(DWORD)NewExport_Directory - (DWORD)NewBuffer);
+
+
+	FILE* fp = fopen("C://project/testNew.dll","wb+");
 	size_t n = 	fwrite(NewBuffer,pOptionHeader->SizeOfImage,1,fp);
 	if(!n){
 		printf("fwrite数据写入失败...\n");
@@ -356,7 +374,7 @@ DWORD FoaToImageOffset(PVOID pBuffer, DWORD dwFoa)
 		printf("(FoaToImageOffset)Not a valid PE flag!\n");
 		return 0;
 	}
-	printf("FileOffset: %#x\n", dwFoa);
+
 	
 	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pBuffer + pDosHeader->e_lfanew);
 	pPEHeader = (PIMAGE_FILE_HEADER)((DWORD)pNTHeader + 4); // 这里必须强制类型转换
