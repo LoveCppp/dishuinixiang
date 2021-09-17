@@ -17,7 +17,10 @@ DWORD ReadPeFile(IN LPSTR lpfzFile,OUT LPVOID* pFileBuffer);
 //新增节
 DWORD MoveExprotTable(LPVOID pFilebuff,LPVOID* pNewbuff);
 
+DWORD MoveRectTable(LPVOID pFilebuff,LPVOID* pNewbuff);
 
+
+DWORD repairReloCation(LPVOID pFilebuff,LPVOID* pNewbuff);
 
 //计算内纯转文件的函数
 DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwFoa);

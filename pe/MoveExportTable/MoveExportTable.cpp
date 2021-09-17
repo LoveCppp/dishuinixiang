@@ -39,10 +39,13 @@ int main(int argc, char* argv[])
 
 	//第一步：在DLL中新增一个节，并返回新增后的FOA
 
-
-	MoveExprotTable(peFileBuffer,&pNewbuff);
-
+	//移动导出表
+	//MoveExprotTable(peFileBuffer,&pNewbuff);、
+	//移动重定位表
+	//MoveRectTable(peFileBuffer,&pNewbuff);
 	 
+	repairReloCation(peFileBuffer,&pNewbuff);
+	
 
 	getchar();
 
