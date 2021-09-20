@@ -44,7 +44,7 @@ DWORD PrintDriectory(LPVOID pImageBuffer);
 DWORD PrintExport(LPVOID pFileBuffer);
 DWORD PrintRelocation(LPVOID pFileBuffer);
 
-
+DWORD PrintImportTable(LPVOID pFileBuffer);
 
 DWORD RvaToFileOffset(PVOID pFileBuffer, DWORD dwFoa);
 DWORD FoaToImageOffset(PVOID pBuffer, DWORD dwFoa);

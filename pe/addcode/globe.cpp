@@ -1131,7 +1131,6 @@ DWORD GetFunctionAddrByOrdinals(LPVOID pFileBuffer,DWORD FunctionOrdinals){
 	
 	
 	DWORD* AddressOfNamesFunctionsAddress = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,Export_Directory->AddressOfNames));
-
 	
 
 	printf("函数地址为：%x\n",AddressOfNamesFunctionsAddress[FunctionOrdinals-Export_Directory->Base]);
@@ -1174,22 +1173,22 @@ DWORD PrintRelocation(LPVOID pFileBuffer){
 	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
 	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
 	//重定位表开始
-	printf("===重定位表====\n");
-	printf("内存地址%x\n",pOptionHeader->DataDirectory[5].VirtualAddress);
-	printf("内存大小%x\n",pOptionHeader->DataDirectory[5].Size);
-
 	
 	if(pOptionHeader->DataDirectory[5].VirtualAddress == 0){
 		printf("%s","不存在重定位表...");
 		return 0;
 	}
- 
-
+	
+	
 	printf("===第一个重定位表结构====\n");
 	PIMAGE_BASE_RELOCATION ReloCation = (_IMAGE_BASE_RELOCATION*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,pOptionHeader->DataDirectory[5].VirtualAddress));
-
 	
-   int cnt = 0;
+	printf("===重定位表====\n");
+	printf("内存地址%x\n",pOptionHeader->DataDirectory[5].VirtualAddress);
+	printf("内存大小%x\n",pOptionHeader->DataDirectory[5].Size);
+
+
+	int cnt = 0;
     while (true) {
           
 		//先判断重定位表是否结束 0代表已经结束
@@ -1216,10 +1215,104 @@ DWORD PrintRelocation(LPVOID pFileBuffer){
 		}else{
 			break;
 		}
-
+	
 
 
     }
     printf("%d\n", cnt);
 
 }
+
+DWORD PrintImportTable(LPVOID pFileBuffer){
+
+	//定义PE头的信息
+	PIMAGE_DOS_HEADER pDosHeader = NULL;
+	PIMAGE_NT_HEADERS pNTHeader = NULL;
+	PIMAGE_FILE_HEADER pPEHeader = NULL;
+	PIMAGE_OPTIONAL_HEADER32 pOptionHeader = NULL;
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+	
+	if(!pFileBuffer)
+	{
+		printf("读取到内存的pfilebuffer无效！\n");
+		return 0;
+	}
+	//判断是不是exe文件
+	if(*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE)
+	{
+		printf("不含MZ标志，不是exe文件！\n");
+		return 0;
+	}
+	pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
+	if(*((PDWORD)((BYTE *)pFileBuffer + pDosHeader->e_lfanew)) != IMAGE_NT_SIGNATURE){
+		printf("无有效的PE标志\n");
+		return 0;
+	}
+	
+	//读取pFileBuffer 获取DOS头，PE头，节表等信息
+	pDosHeader =(PIMAGE_DOS_HEADER)pFileBuffer;
+	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pFileBuffer + pDosHeader->e_lfanew);
+	//打印NT头	
+	pPEHeader = (PIMAGE_FILE_HEADER)(((DWORD)pNTHeader) + 4);  //加4个字节到了标准PE头
+	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
+	
+	 
+	//1000
+
+	
+	PIMAGE_IMPORT_DESCRIPTOR ImportExtable = (PIMAGE_IMPORT_DESCRIPTOR)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,pOptionHeader->DataDirectory[1].VirtualAddress));
+
+	while(ImportExtable->OriginalFirstThunk !=0 && ImportExtable->FirstThunk !=0){
+
+		printf("加载的DLL名称:%s\n",(char*)pFileBuffer + RvaToFileOffset(pFileBuffer,ImportExtable->Name));
+
+		//遍历OriginalFirstThunk
+			
+		DWORD* foa = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,ImportExtable->OriginalFirstThunk));
+		
+		while(*foa){
+		
+			if (*foa & 0x80000000)
+			{
+				printf("按序号导入，序号%x\n",(*foa &0xFFFF));
+			
+			}else{
+				
+				PIMAGE_IMPORT_BY_NAME ImageNames = 	(_IMAGE_IMPORT_BY_NAME*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,*foa));
+				printf("按名称导入HIT/NAME-%x-%s\n",ImageNames->Hint,ImageNames->Name);
+			}
+			
+			foa++;
+		}
+		
+		//遍历FirstThunk
+		
+		DWORD* FirstThunkFoa = (DWORD*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,ImportExtable->FirstThunk));
+
+		while(*FirstThunkFoa){
+		
+			if (*FirstThunkFoa & 0x80000000)
+			{
+				printf("按序号导入序号%x\n",(*FirstThunkFoa & 0xFFFF));
+				
+			}else{
+				
+				PIMAGE_IMPORT_BY_NAME FirstThunkNames = 	(_IMAGE_IMPORT_BY_NAME*)((char*)pFileBuffer + RvaToFileOffset(pFileBuffer,*FirstThunkFoa));
+				printf("按名称导入HIT/NAME-%x-%s\n",FirstThunkNames->Hint,FirstThunkNames->Name);
+			}
+			
+			FirstThunkFoa++;
+		}
+		
+		ImportExtable = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD)ImportExtable+sizeof(IMAGE_IMPORT_DESCRIPTOR));
+		
+	}
+
+
+	
+	return 0;
+};
+
+
+
+
