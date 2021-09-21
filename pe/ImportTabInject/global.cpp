@@ -178,7 +178,8 @@ DWORD InjectDll(LPVOID pFilebuff){
 	pNewSec->SizeOfRawData = 0x1000;//新增的节区的大小
 	//文件偏移
 	pNewSec->PointerToRawData = EndSection->PointerToRawData + EndSection->SizeOfRawData;
-	pNewSec->Characteristics = 0x60000020;//修改属性(可执行)
+	//pNewSec->Characteristics = 0x60000020;//修改属性(可执行)
+	pNewSec->Characteristics |= IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_WRITE|IMAGE_SCN_MEM_READ;
 	pPEHeader->NumberOfSections += 1;
 	//在新增节表后增加40个字节的空白区
     memset(pNewSec+1, 0, 40);
@@ -235,22 +236,27 @@ DWORD InjectDll(LPVOID pFilebuff){
 
 	PIMAGE_IMPORT_BY_NAME ImageName = (PIMAGE_IMPORT_BY_NAME)(IntTable+2);
 	
-	memcpy(ImageName->Name,"ExportFunction",strlen("ExportFunction")+1);
+
+	DWORD FuncNameSzie = strlen("ExportFunction") + 1;
+
+	memcpy(ImageName->Name,"ExportFunction",FuncNameSzie);
 
 	//获取存放DLL名称的地址	这个地址保证在PIMAGE_IMPORT_BY_NAME的结构后面就行
 	
-	DWORD* DllName  = (DWORD*)(ImageName + 1);//
+	DWORD* DllName  = (DWORD*)((DWORD)ImageName + FuncNameSzie+10);// 
 	
 	memcpy(DllName,"InjectDll.dll",strlen("InjectDll.dll")+1);
 
 
 	//修正IAT表地址
-	DWORD InAtFoa = FoaToImageOffset(NewBuffer,(DWORD)ImageName -(DWORD)NewBuffer);
+	DWORD InAtFoa = (FoaToImageOffset(NewBuffer,(DWORD)ImageName -(DWORD)NewBuffer));
+	memcpy(IatTable,&InAtFoa,4);
 	memcpy(IntTable,&InAtFoa,4);
-	memcpy(IntTable,&InAtFoa,4);
+
 	
+
 	//修导出表地址
-	NewImportExtable->FirstThunk = FoaToImageOffset(NewBuffer,(DWORD)IntTable- (DWORD)NewBuffer);
+	NewImportExtable->FirstThunk = FoaToImageOffset(NewBuffer,(DWORD)IntTable - (DWORD)NewBuffer);
 	NewImportExtable->OriginalFirstThunk = FoaToImageOffset(NewBuffer,(DWORD)IatTable- (DWORD)NewBuffer);
 	//修正dll名称的地址
 	NewImportExtable->Name =  FoaToImageOffset(NewBuffer,(DWORD)DllName - (DWORD)NewBuffer);
@@ -258,7 +264,7 @@ DWORD InjectDll(LPVOID pFilebuff){
 	pOptionHeader->DataDirectory[1].VirtualAddress = FoaToImageOffset(NewBuffer,(DWORD)pNewSecAddr-(DWORD)NewBuffer);
 	pOptionHeader->DataDirectory[1].Size = pOptionHeader->DataDirectory[1].Size + 40;
 
-	FILE* fp = fopen("C://project/ipmsg1.exe","wb+");
+	FILE* fp = fopen("C://project/ntoepad123.exe","wb+");
 	size_t n = 	fwrite(NewBuffer,pOptionHeader->SizeOfImage,1,fp);
 	if(!n){
 		printf("fwrite数据写入失败...\n");

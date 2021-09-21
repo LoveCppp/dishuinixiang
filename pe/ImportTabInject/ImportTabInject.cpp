@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
 
 	LPVOID peFileBuffer = NULL;	
-	char path[] = "c://project/ipmsg.exe";	
+	char path[] = "c://project/notepad.exe";	
 	LPSTR FILEPATH = path;
 	//读取file文件读取
 	ReadPeFile(FILEPATH,&peFileBuffer);
@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
 	}
 
 	InjectDll(peFileBuffer);
+
 
 
 	getchar();
