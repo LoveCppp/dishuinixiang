@@ -114,8 +114,7 @@ DWORD InjectDll(LPVOID pFilebuff){
 	//新增一个节来存放导入表
 	//1.修改SizeOfImage大小
 	pOptionHeader->SizeOfImage +=  0x1000;
-	
-	
+
 	
 	LPVOID NewBuffer = malloc(pOptionHeader->SizeOfImage);//申请内存
 	memset(NewBuffer, 0, pOptionHeader->SizeOfImage);//初始化内存
@@ -178,15 +177,15 @@ DWORD InjectDll(LPVOID pFilebuff){
 	pNewSec->SizeOfRawData = 0x1000;//新增的节区的大小
 	//文件偏移
 	pNewSec->PointerToRawData = EndSection->PointerToRawData + EndSection->SizeOfRawData;
-	//pNewSec->Characteristics = 0x60000020;//修改属性(可执行)
+	//pNewSec->Characteristics = 0xC0000040;//修改属性(可执行)
 	pNewSec->Characteristics |= IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_WRITE|IMAGE_SCN_MEM_READ;
 	pPEHeader->NumberOfSections += 1;
 	//在新增节表后增加40个字节的空白区
     memset(pNewSec+1, 0, 40);
+	
 
 
-
-    memcpy(NewBuffer, pFilebuff,pOptionHeader->SizeOfImage);//复制内存 
+	memcpy(NewBuffer, pFilebuff,pOptionHeader->SizeOfImage);//复制内存 
 
 	
 	if (!pOptionHeader->DataDirectory[1].VirtualAddress)
@@ -252,7 +251,6 @@ DWORD InjectDll(LPVOID pFilebuff){
 	DWORD InAtFoa = (FoaToImageOffset(NewBuffer,(DWORD)ImageName -(DWORD)NewBuffer));
 	memcpy(IatTable,&InAtFoa,4);
 	memcpy(IntTable,&InAtFoa,4);
-
 	
 
 	//修导出表地址
@@ -264,16 +262,23 @@ DWORD InjectDll(LPVOID pFilebuff){
 	pOptionHeader->DataDirectory[1].VirtualAddress = FoaToImageOffset(NewBuffer,(DWORD)pNewSecAddr-(DWORD)NewBuffer);
 	pOptionHeader->DataDirectory[1].Size = pOptionHeader->DataDirectory[1].Size + 40;
 
-	FILE* fp = fopen("C://project/ntoepad123.exe","wb+");
+
+	pOptionHeader->DataDirectory[11].VirtualAddress  = 0;
+	pOptionHeader->DataDirectory[11].Size  = 0;
+
+	FILE* fp = fopen("C://project/ipmsgnew.exe","wb+");
 	size_t n = 	fwrite(NewBuffer,pOptionHeader->SizeOfImage,1,fp);
 	if(!n){
 		printf("fwrite数据写入失败...\n");
 		fclose(fp);
 		return ERROR;
 	}
-	printf("存盘成功...\n");
+
 	free(pFilebuff);
 	free(NewBuffer);
+
+	printf("存盘成功...\n");
+
 	fclose(fp);
 
 	
