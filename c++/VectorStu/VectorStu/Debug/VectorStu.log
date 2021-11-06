@@ -1,0 +1,21 @@
+﻿  myclass.cpp
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\myclass.h(10,1): warning C4005: “ERROR”: 宏重定义
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\wingdi.h(118): message : 参见“ERROR”的前一个定义
+  VectorStu.cpp
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\myclass.h(10,1): warning C4005: “ERROR”: 宏重定义
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\wingdi.h(118): message : 参见“ERROR”的前一个定义
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\myclass.h(132,28): warning C4018: “>”: 有符号/无符号不匹配
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\myclass.h(115): message : 在编译 类 模板 成员函数“DWORD Vector<int>::insert(DWORD,T_ELE)”时
+          with
+          [
+              T_ELE=int
+          ]
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\VectorStu.cpp(17): message : 查看对正在编译的函数 模板 实例化“DWORD Vector<int>::insert(DWORD,T_ELE)”的引用
+          with
+          [
+              T_ELE=int
+          ]
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\VectorStu.cpp(10): message : 查看对正在编译的 类 模板 实例化“Vector<int>”的引用
+  正在生成代码...
+C:\Users\Administrator\source\repos\VectorStu\VectorStu\myclass.h(140): warning C4715: “Vector<int>::insert”: 不是所有的控件路径都返回值
+  VectorStu.vcxproj -> C:\Users\Administrator\source\repos\VectorStu\Debug\VectorStu.exe
