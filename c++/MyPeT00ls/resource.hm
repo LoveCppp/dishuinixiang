@@ -1,0 +1,4 @@
+// Microsoft Developer Studio generated Help ID include file.
+// Used by Res.rc
+//
+#define HIDC_EDIT_SizeOfOptionalHeader  0x806803fc    // IDD_DIALOG_PE
