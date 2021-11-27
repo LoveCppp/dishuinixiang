@@ -82,8 +82,8 @@ void EnumSection(HWND hwndDlg, WPARAM wParam, LPARAM lParam ){
 	memset(&vitem, 0, sizeof(LV_ITEM));
 	vitem.mask = LVIF_TEXT;
 	
-	DbgPrintf("%d",NumberOfSections);
-	for (int i=0;i<NumberOfSections;i++,PeSection++)
+	//DbgPrintf("%d",NumberOfSections);
+	for (int i=0;i< NumberOfSections;i++,PeSection++)
 	{
 
 		vitem.pszText= (CHAR*)PeSection->Name;					
@@ -145,6 +145,8 @@ BOOL CALLBACK SectionDialogProc(
 	{			
 	case WM_CLOSE:
 		{
+			PeSection=NULL;
+			NumberOfSections=NULL;
 			EndDialog(hwndDlg,0);
 			break;
 		}

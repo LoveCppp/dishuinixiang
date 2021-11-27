@@ -6,28 +6,29 @@
 --------------------Configuration: MyPeT00ls - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating command line "rc.exe /l 0x804 /fo"Debug/Res.res" /d "_DEBUG" "C:\project\MyPeT00ls\Res.rc"" 
-Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP341.tmp" with contents
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp" with contents
 [
 /nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Fp"Debug/MyPeT00ls.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\project\MyPeT00ls\SectionDialog.cpp"
+"C:\project\MyPeT00ls\ExportTable.cpp"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP341.tmp" 
-Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP342.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP4.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/MyPeT00ls.pdb" /debug /machine:I386 /out:"Debug/MyPeT00ls.exe" /pdbtype:sept 
+.\Debug\DIRECTORYView.obj
+.\Debug\ExportTable.obj
 .\Debug\MyPeT00ls.obj
 .\Debug\PeToolsDiaog.obj
-.\Debug\StdAfx.obj
-.\Debug\Res.res
 .\Debug\SectionDialog.obj
+.\Debug\StdAfx.obj
+.\Debug\T00ls.obj
+.\Debug\Res.res
 ]
-Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP342.tmp"
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP4.tmp"
 <h3>Output Window</h3>
-Compiling resources...
 Compiling...
-SectionDialog.cpp
-C:\project\MyPeT00ls\SectionDialog.cpp(86) : warning C4018: '<' : signed/unsigned mismatch
+ExportTable.cpp
+C:\project\MyPeT00ls\ExportTable.cpp(32) : warning C4018: '<' : signed/unsigned mismatch
 Linking...
 
 

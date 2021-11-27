@@ -250,6 +250,8 @@ BOOL CALLBACK DialogProc(
 	{			
 	case WM_CLOSE:
 		{
+			gHwndDlg = NULL;
+			gHInstance = NULL;
 			EndDialog(hwndDlg,0);
 			break;
 		}

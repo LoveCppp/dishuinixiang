@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "PeToolsDiaog.h"
 #include "SectionDialog.h"
+#include "DIRECTORYView.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -228,9 +229,18 @@ BOOL CALLBACK PeDialogProc(
 				SectionView(peHInstance,hwndDlg,peDesc.section,peDesc.HEADER->NumberOfSections);						
 				return TRUE;
 			}
-	
+		case IDC_BUTTON_DATADIR:
+			{
+				DirectoryView(peHInstance,hwndDlg,peDesc.opheader,pFilebuff);						
+				return TRUE;
+
+			}
 		case   IDC_BUTTON_PECLOSE:												
 			{
+				FileName= NULL;
+				pFilebuff=NULL;
+				peHInstance= NULL;
+				memset(&peDesc,0,sizeof(peDesc));
 				EndDialog(hwndDlg, 0);						
 				return TRUE;
 			}

@@ -90,6 +90,14 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\DIRECTORYView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ExportTable.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MyPeT00ls.cpp
 # End Source File
 # Begin Source File
@@ -109,10 +117,22 @@ SOURCE=.\SectionDialog.cpp
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
+# Begin Source File
+
+SOURCE=.\T00ls.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\DIRECTORYView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ExportTable.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\PeToolsDiaog.h
@@ -128,6 +148,10 @@ SOURCE=.\SectionDialog.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\T00ls.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
