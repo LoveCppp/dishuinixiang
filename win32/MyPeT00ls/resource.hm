@@ -1,0 +1,5 @@
+// Microsoft Developer Studio generated Help ID include file.
+// Used by Res.rc
+//
+#define HIDC_EDIT_DIRECTORY_ENTRY_IBOUND_IMPORTSIZE \
+                                        0x806b0424    // IDD_DIALOG_DIRECTORY
