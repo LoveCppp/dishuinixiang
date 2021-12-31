@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 				//申请空间
 				status = VirtualAllocEx(pi.hProcess, (LPVOID)dwTempImageBaseSrc,srcSizeOfImage,MEM_RESERVE | MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 				ChangesImageBase(EnyBuffer, dwTempImageBaseSrc);
-				WriteProcessMemory(pi.hProcess, (LPVOID)dwTempImageBaseSrc, EnyBuffer, srcSizeOfImage, NULL);
+				WriteProcessMemory(pi.hProcess, (LPVOID)dwTempImageBaseSrc, pImageBuffer, srcSizeOfImage, NULL);
 				while(pRelocationDirectory->SizeOfBlock && pRelocationDirectory->VirtualAddress){				
 					NumberOfRelocation = (pRelocationDirectory->SizeOfBlock - 8)/2;// 每个重定位块中的数据项的数量
 					Location = (PWORD)((DWORD)pRelocationDirectory + 8); // 加上8个字节
