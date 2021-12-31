@@ -3,14 +3,14 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include "PeTools.h"
-//ĞŞ¸´ÖØ¶¨Î»
+//ä¿®å¤é‡å®šä½
 VOID ModificationBaseRel(IN LPVOID ImageBuffer, DWORD newImageBase) {
-	PIMAGE_DOS_HEADER pDosHeader = NULL; //DOs Í·
-	PIMAGE_NT_HEADERS pNTHeader = NULL; //NTÍ·
-	PIMAGE_FILE_HEADER pFileHeader = NULL; // ±ê×¼PEÍ·
-	PIMAGE_OPTIONAL_HEADER pOptionHerader = NULL; // ¿ÉÑ¡PEÍ·
-	PIMAGE_SECTION_HEADER pSectionHeader = NULL; // ½Ú±í
-	PIMAGE_BASE_RELOCATION pBaseRelocation = NULL; //ÖØ¶¨Î»±í
+	PIMAGE_DOS_HEADER pDosHeader = NULL; //DOs å¤´
+	PIMAGE_NT_HEADERS pNTHeader = NULL; //NTå¤´
+	PIMAGE_FILE_HEADER pFileHeader = NULL; // æ ‡å‡†PEå¤´
+	PIMAGE_OPTIONAL_HEADER pOptionHerader = NULL; // å¯é€‰PEå¤´
+	PIMAGE_SECTION_HEADER pSectionHeader = NULL; // èŠ‚è¡¨
+	PIMAGE_BASE_RELOCATION pBaseRelocation = NULL; //é‡å®šä½è¡¨
 	
 	pDosHeader = (PIMAGE_DOS_HEADER)ImageBuffer;
 	pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)pDosHeader + pDosHeader->e_lfanew);
@@ -46,39 +46,39 @@ int main(int argc, char* argv[])
 {	
 	/*
 
-	//»ñÈ¡µ±Ç°ÎÄ¼şÂ·¾¶
+	//è·å–å½“å‰æ–‡ä»¶è·¯å¾„
 	char FilePath[255] = {0};
 	GetModuleFileName(NULL, FilePath, 255);
 	*/
 
 	char FilePath[] = "c://project/ipmsgnew.exe";
-	// 1¡¢¶ÁÈ¡µ±Ç°³ÌĞòÊı¾İ
+	// 1ã€è¯»å–å½“å‰ç¨‹åºæ•°æ®
 	PVOID pFileBuffer = NULL;
 	PVOID EnyBuffer = NULL;
 	DWORD szizFilebuff = 0;
 	
 	LPSTR FILEPATH = FilePath;
-	//»ñÈ¡µ±Ç°³ÌĞò
+	//è·å–å½“å‰ç¨‹åº
 	ReadPeFile(FILEPATH,&pFileBuffer);
 	
-	//»ñÈ¡µ½¼ÓÃÜ³ÌĞò½ÚµÄÊı¾İ
+	//è·å–åˆ°åŠ å¯†ç¨‹åºèŠ‚çš„æ•°æ®
 	DWORD EncyFileSize=0;
 	EncyFileSize = GetSection(pFileBuffer,&EnyBuffer);
-	//½âÃÜ
+	//è§£å¯†
 	if (EncyFileSize == 0)
 	{
 		MessageBoxA(0,0,0,0);
 		return 0;
 	}
-	//2¡¢½âÃÜµÃµ½Ô­À´µÄPEÎÄ¼ş
+	//2ã€è§£å¯†å¾—åˆ°åŸæ¥çš„PEæ–‡ä»¶
 	XorDecodeAAA((char*)EnyBuffer,EncyFileSize);
 	
-	//½âÃÜÍê filebuff -> imagebuff
+	//è§£å¯†å®Œ filebuff -> imagebuff
 	PVOID pImageBuffer = NULL;
 
 	int ImageSize=	CopyFileBufferToImageBuffer(EnyBuffer,&pImageBuffer);
 	
-	//3¡¢ÒÑ¹ÒÆğµÄ·½Ê½´´½¨½ø³Ì(¿şÀÜ½ø³Ì) ´´½¨µÄ½ø³Ì¾ÍÊÇ¿Ç×Ó±¾Éí
+	//3ã€å·²æŒ‚èµ·çš„æ–¹å¼åˆ›å»ºè¿›ç¨‹(å‚€å„¡è¿›ç¨‹) åˆ›å»ºçš„è¿›ç¨‹å°±æ˜¯å£³å­æœ¬èº«
 	
 	STARTUPINFO si = {0};
 	PROCESS_INFORMATION pi;
@@ -87,22 +87,22 @@ int main(int argc, char* argv[])
 	printf("error is %d\n", GetLastError());
 	
 
-	//4¡¢»ñÈ¡¸Õ¸Õ´´½¨Ïß³ÌContext½á¹¹ ²¢»ñÈ¡ËüµÄÈë¿Úµã ºÍ imgebase
+	//4ã€è·å–åˆšåˆšåˆ›å»ºçº¿ç¨‹Contextç»“æ„ å¹¶è·å–å®ƒçš„å…¥å£ç‚¹ å’Œ imgebase
 	CONTEXT contx;
     contx.ContextFlags = CONTEXT_FULL;
     GetThreadContext(pi.hThread, &contx);
 	
-    //»ñÈ¡Èë¿Úµã                                
-    DWORD dwEntryPoint = contx.Eax;  //µ±Ç°³ÌĞòµÄÈë¿Úµã
-    //»ñÈ¡ImageBase                                  
+    //è·å–å…¥å£ç‚¹                                
+    DWORD dwEntryPoint = contx.Eax;  //å½“å‰ç¨‹åºçš„å…¥å£ç‚¹
+    //è·å–ImageBase                                  
     char* baseAddress = (CHAR *)contx.Ebx + 8; 
     DWORD imageBase = 0;
     SIZE_T byteSize = 0;
-	//»ñÈ¡µ½¿Ç½ø³ÌµÄimagebase
+	//è·å–åˆ°å£³è¿›ç¨‹çš„imagebase
     ReadProcessMemory(pi.hProcess, baseAddress, &imageBase, 4, &byteSize); 
 
 
-	//5¡¢ Ğ¶ÔØÍâ¿Ç¾µÏñ´úÂë 
+	//5ã€ å¸è½½å¤–å£³é•œåƒä»£ç  
 
 
 	typedef long NTSTATUS;
@@ -125,16 +125,16 @@ int main(int argc, char* argv[])
 	
 	
 
-	//6¡¢ÔÚÖ¸¶¨µÄÎ»ÖÃ·ÖÅä¿Õ¼ä£ºÎ»ÖÃ¾ÍÊÇsrcµÄImageBase  ´óĞ¡¾ÍÊÇSrcµÄSizeOfImage	
+	//6ã€åœ¨æŒ‡å®šçš„ä½ç½®åˆ†é…ç©ºé—´ï¼šä½ç½®å°±æ˜¯srcçš„ImageBase  å¤§å°å°±æ˜¯Srcçš„SizeOfImage	
 	
-	//»ñÈ¡src imagebase  sizeofimage
+	//è·å–src imagebase  sizeofimage
     DWORD srcImageBase = 0;
     DWORD srcSizeOfImage = 0;
     DWORD srcOEP = 0;
     GetImageBase(pImageBuffer, &srcImageBase,&srcSizeOfImage,&srcOEP);
 	
 	LPVOID status = NULL;
-    //ÔÚ¿Ç×Ó½ø³Ì¿Õ¼äÖĞÉêÇëÄÚ´æ
+    //åœ¨å£³å­è¿›ç¨‹ç©ºé—´ä¸­ç”³è¯·å†…å­˜
     status = VirtualAllocEx(pi.hProcess,(LPVOID)srcImageBase, srcSizeOfImage,MEM_RESERVE | MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 
 	printf("VirtualAllocEx: %x\n",status);
@@ -142,21 +142,21 @@ int main(int argc, char* argv[])
 	
 
 
-	//ÅĞ¶ÏÊÇ·ñÉêÇë³É¹¦,Èç¹ûÉÏÒ»²½ÄÚ´æÃ»ÓĞÉêÇëµ½ĞèÒª ÅĞ¶ÏÕâ¸ösrcÓĞÃ»ÓĞÖØ¶¨Î»±í,  ÓĞµÄ»°¾ÍÔÚ±ğµÄµØ·½ÉêÇë, Ã»ÓĞµÄ»°¾Í½âÃÜÊ§°Ü					
+	//åˆ¤æ–­æ˜¯å¦ç”³è¯·æˆåŠŸ,å¦‚æœä¸Šä¸€æ­¥å†…å­˜æ²¡æœ‰ç”³è¯·åˆ°éœ€è¦ åˆ¤æ–­è¿™ä¸ªsrcæœ‰æ²¡æœ‰é‡å®šä½è¡¨,  æœ‰çš„è¯å°±åœ¨åˆ«çš„åœ°æ–¹ç”³è¯·, æ²¡æœ‰çš„è¯å°±è§£å¯†å¤±è´¥					
 	if(status != NULL){
-		printf("7777777\n");
-		//7¡¢Èç¹û³É¹¦£¬½«SrcµÄPEÎÄ¼şÀ­Éì ¸´ÖÆµ½¸Ã¿Õ¼äÖĞ
+		printf("å†…å­˜ç”³è¯·æˆåŠŸ\n");
+		//7ã€å¦‚æœæˆåŠŸï¼Œå°†Srcçš„PEæ–‡ä»¶æ‹‰ä¼¸ å¤åˆ¶åˆ°è¯¥ç©ºé—´ä¸­
 		
-		//dwBufferImageBaseSrc ½âÃÜºóimgbuffµÄimage base 
-		//pImageBufferSrc  À­ÉìºóµÄimagebuffer
-		//dwBufferLengthSrc ½âÃÜºóµÄsize
-		printf("%x,%x,%x",srcImageBase,pImageBuffer);
+		//dwBufferImageBaseSrc è§£å¯†åimgbuffçš„image base 
+		//pImageBufferSrc  æ‹‰ä¼¸åçš„imagebuffer
 		WriteProcessMemory(pi.hProcess, (LPVOID)srcImageBase, pImageBuffer, srcSizeOfImage, NULL);
 		
 	}else{
 		if(isRelocation(pImageBuffer)){
-			printf("ÓĞÖØ¶¨Î»±í");
-			//ĞŞ¸´ÖØ¶¨Î»±í
+			
+			printf("å­˜åœ¨é‡å®šä½è¡¨");
+
+			//ä¿®å¤é‡å®šä½è¡¨
 			PIMAGE_BASE_RELOCATION pRelocationDirectory = NULL;
 			DWORD pRelocationDirectoryVirtual = 0;
 			
@@ -165,45 +165,49 @@ int main(int argc, char* argv[])
 			DWORD RVA_Data;
 			WORD reloData;
 			DWORD FOA;
-			DWORD dwTempImageBaseSrc = srcImageBase + 0x50000;  //ĞÂµÄimagebase
+			DWORD dwTempImageBaseSrc = srcImageBase + 0x50000;  //æ–°çš„imagebase
 			
-			pRelocationDirectoryVirtual = GetRelocatio(EnyBuffer); //µ±Ç°ÖØ¶¨Î»±íµÄĞéÄâµØÖ·
+			pRelocationDirectoryVirtual = GetRelocatio(EnyBuffer); //å½“å‰é‡å®šä½è¡¨çš„è™šæ‹Ÿåœ°å€
 			printf("%x",pRelocationDirectoryVirtual);
 			if(pRelocationDirectoryVirtual){
 				FOA = RvaToFileOffset(EnyBuffer, pRelocationDirectoryVirtual);
 				pRelocationDirectory = (PIMAGE_BASE_RELOCATION)((DWORD)EnyBuffer + FOA);
-				//ÉêÇë¿Õ¼ä
+				//ç”³è¯·ç©ºé—´
 				status = VirtualAllocEx(pi.hProcess, (LPVOID)dwTempImageBaseSrc,srcSizeOfImage,MEM_RESERVE | MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 				ChangesImageBase(EnyBuffer, dwTempImageBaseSrc);
 				WriteProcessMemory(pi.hProcess, (LPVOID)dwTempImageBaseSrc, EnyBuffer, srcSizeOfImage, NULL);
 				while(pRelocationDirectory->SizeOfBlock && pRelocationDirectory->VirtualAddress){				
-					NumberOfRelocation = (pRelocationDirectory->SizeOfBlock - 8)/2;// Ã¿¸öÖØ¶¨Î»¿éÖĞµÄÊı¾İÏîµÄÊıÁ¿
-					Location = (PWORD)((DWORD)pRelocationDirectory + 8); // ¼ÓÉÏ8¸ö×Ö½Ú
+					NumberOfRelocation = (pRelocationDirectory->SizeOfBlock - 8)/2;// æ¯ä¸ªé‡å®šä½å—ä¸­çš„æ•°æ®é¡¹çš„æ•°é‡
+					Location = (PWORD)((DWORD)pRelocationDirectory + 8); // åŠ ä¸Š8ä¸ªå­—èŠ‚
 					for(DWORD i=0;i<NumberOfRelocation;i++){
-						if(Location[i] >> 12 != 0){ //ÅĞ¶ÏÊÇ·ñÊÇÀ¬»øÊı¾İ
-							// WORDÀàĞÍµÄ±äÁ¿½øĞĞ½ÓÊÕ
-							reloData = (Location[i] & 0xFFF); //ÕâÀï½øĞĞÓë²Ù×÷ Ö»È¡4×Ö½Ú ¶ş½øÖÆµÄºó12Î»
-							RVA_Data = pRelocationDirectory->VirtualAddress + reloData; //Õâ¸öÊÇRVAµÄµØÖ·
+						if(Location[i] >> 12 != 0){ //åˆ¤æ–­æ˜¯å¦æ˜¯åƒåœ¾æ•°æ®
+							// WORDç±»å‹çš„å˜é‡è¿›è¡Œæ¥æ”¶
+							reloData = (Location[i] & 0xFFF); //è¿™é‡Œè¿›è¡Œä¸æ“ä½œ åªå–4å­—èŠ‚ äºŒè¿›åˆ¶çš„å12ä½
+							RVA_Data = pRelocationDirectory->VirtualAddress + reloData; //è¿™ä¸ªæ˜¯RVAçš„åœ°å€
 							FOA = RvaToFileOffset(EnyBuffer,RVA_Data);
-							//ÕâÀïÊÇ×ÔÔöµÄ ½øĞĞĞŞ¸´ÖØ¶¨Î»£¬ÉÏÃæµÄImagebaseÎÒÃÇ¸Ä³ÉÁËTempImageBase,ÄÇÃ´¸Ä±äµÄÖµ¾ÍÊÇ TempImageBase-dwBufferImageBaseSrc
-							*(PDWORD)((DWORD)EnyBuffer+(DWORD)FOA) = *(PDWORD)((DWORD)EnyBuffer+(DWORD)FOA) + dwTempImageBaseSrc - srcSizeOfImage;	 // ÈÎÒâÎ»ÖÃ - Origin ImageBase			
+							//è¿™é‡Œæ˜¯è‡ªå¢çš„ è¿›è¡Œä¿®å¤é‡å®šä½ï¼Œä¸Šé¢çš„Imagebaseæˆ‘ä»¬æ”¹æˆäº†TempImageBase,é‚£ä¹ˆæ”¹å˜çš„å€¼å°±æ˜¯ TempImageBase-dwBufferImageBaseSrc
+							*(PDWORD)((DWORD)EnyBuffer+(DWORD)FOA) = *(PDWORD)((DWORD)EnyBuffer+(DWORD)FOA) + dwTempImageBaseSrc - srcSizeOfImage;	 // ä»»æ„ä½ç½® - Origin ImageBase			
 						}
 					}
-					pRelocationDirectory = (PIMAGE_BASE_RELOCATION)((DWORD)pRelocationDirectory + (DWORD)pRelocationDirectory->SizeOfBlock); //ÉÏÃæµÄforÑ­»·Íê³ÉÖ®ºó£¬Ìø×ªµ½ÏÂ¸öÖØ¶¨Î»¿é ¼ÌĞøÈçÉÏµÄ²Ù×÷
+					pRelocationDirectory = (PIMAGE_BASE_RELOCATION)((DWORD)pRelocationDirectory + (DWORD)pRelocationDirectory->SizeOfBlock); //ä¸Šé¢çš„forå¾ªç¯å®Œæˆä¹‹åï¼Œè·³è½¬åˆ°ä¸‹ä¸ªé‡å®šä½å— ç»§ç»­å¦‚ä¸Šçš„æ“ä½œ
 				}
 				
 			srcImageBase = dwTempImageBaseSrc;
-	
-
+			}else{
+				// 9ã€å¦‚æœç¬¬6æ­¥ç”³è¯·ç©ºé—´å¤±è´¥ï¼Œå¹¶ä¸”è¿˜æ²¡æœ‰é‡å®šä½è¡¨ï¼Œç›´æ¥è¿”å›ï¼šå¤±è´¥.
+				printf("999999\n");
+				return -1;	
+			}
+			
 		}else{
-		   printf("½â¿ÇÉêÇëÄÚ´æÊ§°Ü");
+		   printf("è§£å£³ç”³è¯·å†…å­˜å¤±è´¥");
 		   return 0;
 		}
 	}
 
 
 
-	// 10¡¢ĞŞ¸ÄÍâ¿Ç³ÌĞòµÄContext:
+	// 10ã€ä¿®æ”¹å¤–å£³ç¨‹åºçš„Context:
 	CONTEXT cont;
 	cont.ContextFlags = CONTEXT_FULL; 
 	::GetThreadContext(pi.hThread, &cont);
@@ -214,13 +218,12 @@ int main(int argc, char* argv[])
 	WriteProcessMemory(pi.hProcess, &theOep, &srcImageBase,4, &dwBytes);
 	
     SetThreadContext(pi.hThread, &cont);
-	//¼ÇµÃ»Ö¸´Ïß³Ì
+	//è®°å¾—æ¢å¤çº¿ç¨‹
     ResumeThread(pi.hThread);
 	ExitProcess(0);
-	//¼ÇµÃ»Ö¸´Ïß³Ì
+	//è®°å¾—æ¢å¤çº¿ç¨‹
 	return 0;
 
 
 
-	}
 }
