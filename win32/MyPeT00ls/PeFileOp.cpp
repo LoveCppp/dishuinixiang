@@ -93,8 +93,6 @@ BOOL SAddNewSection(PVOID pFileBuffer,PVOID SrcFileBuffer,DWORD SrcBuffSize){
 	pOptionHeader = (PIMAGE_OPTIONAL_HEADER32)((DWORD)pPEHeader + IMAGE_SIZEOF_FILE_HEADER); //标准PE头+标准PE头的大小 20
 	pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD)pOptionHeader + pPEHeader->SizeOfOptionalHeader);
 
-	//移动导入表
-	
 	//获取剩余大小 //SizeOfHeaders(总的大小)4096 -   ( pSectionHeader(一个地址，文件开始的地方偏移了pSectionHeader的大小的字节)  -    (文件偏移+pPEHeader->NumberOfSections * 40)  一个地址 文件开始的地方偏移了节的大小的字节 并不是节在文件中的偏移地址，所以会比 pSectionHeader小)
 	DWORD whiteSpaceSize = pOptionHeader->SizeOfHeaders - ((DWORD)pSectionHeader - (DWORD)pFileBuffer + pPEHeader->NumberOfSections * 40);
 	
