@@ -1,0 +1,2 @@
+只做了messbox的监控，和关闭
+使用内存注入+共享内存+inlinehook
